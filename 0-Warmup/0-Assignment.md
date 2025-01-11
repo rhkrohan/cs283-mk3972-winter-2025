@@ -35,10 +35,13 @@ Please provide answers to these questions using markdown notation and place them
 
 
 3. Please provide a link to the repository you are using for this class.
+
 https://github.com/rhkrohan/cs283-mk3972-winter-2025
 
 4. Briefly describe what you want to get out of this class.
+
 I aim to deepen my understanding of system-level programming and learn how to effectively work with operating system concepts like memory management, concurrency, and networking, which are crucial for building efficient and scalable software systems.
 
 5. Briefly describe any concerns you might be having with being successful in this class (if any).
+
 My primary concern is ensuring I stay on top of deadlines and the workload, especially with concurrent programming assignments. I want to make sure I grasp the advanced Linux features and low-level programming concepts thoroughly, as they are new to me.
