@@ -1,117 +1,297 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
+//Name: Muhammad Rohan Khan
+//CS283: Assignment 1 - C Refresher 
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define BUFFER_SZ 50
 
-//prototypes
 void usage(char *);
 void print_buff(char *, int);
-int  setup_buff(char *, char *, int);
+int setup_buff(char *, char *, int);
+int count_words(char *, int, int);
+int reverse_string(char *, int);
+int print_words(char *, int);
+int search_replace(char *, int, char *, char *);
 
-//prototypes for functions to handle required functionality
-int  count_words(char *, int, int);
-//add additional prototypes here
-
-
-int setup_buff(char *buff, char *user_str, int len){
-    //TODO: #4:  Implement the setup buff as per the directions
-    return 0; //for now just so the code compiles. 
-}
-
-void print_buff(char *buff, int len){
-    printf("Buffer:  ");
-    for (int i=0; i<len; i++){
-        putchar(*(buff+i));
+int setup_buff(char *buff, char *user_str, int len) {
+    char *src = user_str;
+    char *dst = buff;
+    int count = 0;
+    int seenSpace = 0;
+    while (*src == ' ' || *src == '\t') {
+        src++;
     }
-    putchar('\n');
+    while (*src != '\0') {
+        if (*src == ' ' || *src == '\t') {
+            if (!seenSpace) {
+                if (count >= len) return -1;
+                *dst++ = ' ';
+                count++;
+                seenSpace = 1;
+            }
+            src++;
+        } else {
+            if (count >= len) return -1;
+            *dst++ = *src++;
+            count++;
+            seenSpace = 0;
+        }
+    }
+    if (count > 0 && *(dst - 1) == ' ') {
+        dst--;
+        count--;
+    }
+    while (count < len) {
+        *dst++ = '.';
+        count++;
+    }
+    {
+        int userCount = -1;
+        char *p = buff;
+        for (int i = 0; i < len; i++) {
+            if (*p == '.') {
+                userCount = i;
+                break;
+            }
+            p++;
+        }
+        if (userCount < 0) {
+            userCount = len;
+        }
+        return userCount;
+    }
 }
 
-void usage(char *exename){
+void print_buff(char *buff, int len) {
+    printf("Buffer:  [");
+    for (int i = 0; i < len; i++) {
+        putchar(*(buff + i));
+    }
+    printf("]\n");
+}
+
+void usage(char *exename) {
     printf("usage: %s [-h|c|r|w|x] \"string\" [other args]\n", exename);
-
 }
 
-int count_words(char *buff, int len, int str_len){
-    //YOU MUST IMPLEMENT
+int count_words(char *buff, int buflen, int str_len) {
+    if (str_len <= 0) return 0;
+    int count = 0;
+    int inWord = 0;
+    char *p = buff;
+    for (int i = 0; i < str_len; i++) {
+        char c = *(p + i);
+        if (c == ' ') {
+            inWord = 0;
+        } else {
+            if (!inWord) {
+                count++;
+                inWord = 1;
+            }
+        }
+    }
+    return count;
+}
+
+int reverse_string(char *buff, int str_len) {
+    char *left = buff;
+    char *right = buff + (str_len - 1);
+    while (left < right) {
+        char tmp = *left;
+        *left = *right;
+        *right = tmp;
+        left++;
+        right--;
+    }
     return 0;
 }
 
-//ADD OTHER HELPER FUNCTIONS HERE FOR OTHER REQUIRED PROGRAM OPTIONS
+int print_words(char *buff, int str_len) {
+    printf("Word Print\n");
+    printf("----------\n");
+    int wordCount = 0;
+    int inWord = 0;
+    int startIdx = 0;
+    char *p = buff;
+    for (int i = 0; i < str_len; i++) {
+        char c = *(p + i);
+        if (c == ' ') {
+            if (inWord) {
+                wordCount++;
+                printf("%d. ", wordCount);
+                int wlen = i - startIdx;
+                for (int j = startIdx; j < i; j++) {
+                    putchar(*(p + j));
+                }
+                printf("(%d)\n", wlen);
+                inWord = 0;
+            }
+        } else {
+            if (!inWord) {
+                inWord = 1;
+                startIdx = i;
+            }
+        }
+    }
+    if (inWord) {
+        wordCount++;
+        printf("%d. ", wordCount);
+        int wlen = str_len - startIdx;
+        for (int j = startIdx; j < str_len; j++) {
+            putchar(*(p + j));
+        }
+        printf("(%d)\n", wlen);
+    }
+    return wordCount;
+}
 
-int main(int argc, char *argv[]){
+int search_replace(char *buff, int str_len, char *find, char *replace) {
+    int findLen = 0;
+    int replaceLen = 0;
+    {
+        char *f = find;
+        while (*f != '\0') {
+            findLen++;
+            f++;
+        }
+    }
+    {
+        char *r = replace;
+        while (*r != '\0') {
+            replaceLen++;
+            r++;
+        }
+    }
+    if (findLen == 0) {
+        return -1;
+    }
+    int foundIdx = -1;
+    for (int i = 0; i <= str_len - findLen; i++) {
+        int match = 1;
+        for (int j = 0; j < findLen; j++) {
+            if (*(buff + i + j) != *(find + j)) {
+                match = 0;
+                break;
+            }
+        }
+        if (match) {
+            foundIdx = i;
+            break;
+        }
+    }
+    if (foundIdx < 0) {
+        return -1;
+    }
+    int newLen = str_len - findLen + replaceLen;
+    if (newLen > BUFFER_SZ) {
+        newLen = BUFFER_SZ;
+    }
+    int remainderCount = str_len - (foundIdx + findLen);
+    int newRemainderStart = foundIdx + replaceLen;
+    char remainder[BUFFER_SZ];
+    int i;
+    for (i = 0; i < remainderCount; i++) {
+        remainder[i] = *(buff + foundIdx + findLen + i);
+    }
+    for (i = 0; i < replaceLen; i++) {
+        if ((foundIdx + i) >= BUFFER_SZ) {
+            break;
+        }
+        *(buff + foundIdx + i) = *(replace + i);
+    }
+    int toCopy = remainderCount;
+    if (newRemainderStart + toCopy > BUFFER_SZ) {
+        toCopy = BUFFER_SZ - newRemainderStart;
+    }
+    for (i = 0; i < toCopy; i++) {
+        *(buff + newRemainderStart + i) = remainder[i];
+    }
+    for (int fill = newRemainderStart + toCopy; fill < BUFFER_SZ; fill++) {
+        *(buff + fill) = '.';
+    }
+    return newLen;
+}
 
-    char *buff;             //placehoder for the internal buffer
-    char *input_string;     //holds the string provided by the user on cmd line
-    char opt;               //used to capture user option from cmd line
-    int  rc;                //used for return codes
-    int  user_str_len;      //length of user supplied string
-
-    //TODO:  #1. WHY IS THIS SAFE, aka what if arv[1] does not exist?
-    //      PLACE A COMMENT BLOCK HERE EXPLAINING
-    if ((argc < 2) || (*argv[1] != '-')){
+int main(int argc, char *argv[]) {
+    char *buff;
+    char *input_string;
+    char opt;
+    int rc;
+    int user_str_len;
+    if ((argc < 2) || (*argv[1] != '-')) {
         usage(argv[0]);
         exit(1);
     }
-
-    opt = (char)*(argv[1]+1);   //get the option flag
-
-    //handle the help flag and then exit normally
-    if (opt == 'h'){
+    opt = (char)*(argv[1] + 1);
+    if (opt == 'h') {
         usage(argv[0]);
         exit(0);
     }
-
-    //WE NOW WILL HANDLE THE REQUIRED OPERATIONS
-
-    //TODO:  #2 Document the purpose of the if statement below
-    //      PLACE A COMMENT BLOCK HERE EXPLAINING
-    if (argc < 3){
+    if (argc < 3) {
         usage(argv[0]);
         exit(1);
     }
-
-    input_string = argv[2]; //capture the user input string
-
-    //TODO:  #3 Allocate space for the buffer using malloc and
-    //          handle error if malloc fails by exiting with a 
-    //          return code of 99
-    // CODE GOES HERE FOR #3
-
-
-    user_str_len = setup_buff(buff, input_string, BUFFER_SZ);     //see todos
-    if (user_str_len < 0){
-        printf("Error setting up buffer, error = %d", user_str_len);
+    input_string = argv[2];
+    buff = (char *)malloc(BUFFER_SZ * sizeof(char));
+    if (!buff) {
+        fprintf(stderr, "error: memory allocation failed\n");
         exit(2);
     }
-
-    switch (opt){
+    user_str_len = setup_buff(buff, input_string, BUFFER_SZ);
+    if (user_str_len < 0) {
+        fprintf(stderr, "error: Provided input string is too long\n");
+        free(buff);
+        exit(3);
+    }
+    switch (opt) {
         case 'c':
-            rc = count_words(buff, BUFFER_SZ, user_str_len);  //you need to implement
-            if (rc < 0){
-                printf("Error counting words, rc = %d", rc);
-                exit(2);
+            rc = count_words(buff, BUFFER_SZ, user_str_len);
+            if (rc < 0) {
+                printf("Error counting words, rc = %d\n", rc);
+                free(buff);
+                exit(3);
             }
             printf("Word Count: %d\n", rc);
             break;
-
-        //TODO:  #5 Implement the other cases for 'r' and 'w' by extending
-        //       the case statement options
+        case 'r':
+            rc = reverse_string(buff, user_str_len);
+            if (rc < 0) {
+                fprintf(stderr, "error reversing string\n");
+                free(buff);
+                exit(3);
+            }
+            break;
+        case 'w': {
+            int wordCount = print_words(buff, user_str_len);
+            printf("\nNumber of words returned: %d\n", wordCount);
+        }
+            break;
+        case 'x':
+            if (argc < 5) {
+                usage(argv[0]);
+                free(buff);
+                exit(1);
+            } else {
+                char *findStr = argv[3];
+                char *replaceStr = argv[4];
+                rc = search_replace(buff, user_str_len, findStr, replaceStr);
+                if (rc < 0) {
+                    fprintf(stderr, "error: substring not found or other replace error\n");
+                    free(buff);
+                    exit(3);
+                } else {
+                    user_str_len = rc;
+                }
+            }
+            break;
         default:
             usage(argv[0]);
+            free(buff);
             exit(1);
     }
-
-    //TODO:  #6 Dont forget to free your buffer before exiting
-    print_buff(buff,BUFFER_SZ);
+    print_buff(buff, BUFFER_SZ);
+    free(buff);
     exit(0);
 }
-
-//TODO:  #7  Notice all of the helper functions provided in the 
-//          starter take both the buffer as well as the length.  Why
-//          do you think providing both the pointer and the length
-//          is a good practice, after all we know from main() that 
-//          the buff variable will have exactly 50 bytes?
-//  
-//          PLACE YOUR ANSWER HERE
