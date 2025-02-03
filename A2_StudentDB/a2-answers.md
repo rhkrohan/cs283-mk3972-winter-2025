@@ -74,7 +74,8 @@ Please answer the following questions and submit in your repo for the second ass
     ```
     In this implementation the storage for the student record is allocated on the heap using `malloc()` and passed back to the caller when the function returns. What do you think about this alternative implementation of `get_student(...)`?  Address in your answer why it work work, but also think about any potential problems it could cause.  
     
-    > **ANSWER:** _start here_  
+    > **ANSWER:** Allocating the student record on the heap using `malloc()` would indeed allow the function to return a pointer that remains valid after the function exits, thus avoiding the issue of returning a pointer to a local variable. However, this approach introduces new responsibilities: the caller must remember to free the allocated memory to avoid memory leaks. In addition, if many such allocations occur without proper deallocation, it could lead to inefficient memory usage or fragmentation.
+
 
 
 4. Lets take a look at how storage is managed for our simple database. Recall that all student records are stored on disk using the layout of the `student_t` structure (which has a size of 64 bytes).  Lets start with a fresh database by deleting the `student.db` file using the command `rm ./student.db`.  Now that we have an empty database lets add a few students and see what is happening under the covers.  Consider the following sequence of commands:
@@ -104,11 +105,14 @@ Please answer the following questions and submit in your repo for the second ass
 
     - Please explain why the file size reported by the `ls` command was 128 bytes after adding student with ID=1, 256 after adding student with ID=3, and 4160 after adding the student with ID=64? 
 
-        > **ANSWER:** _start here_
+        > **ANSWER:** The file size reported by `ls` reflects the logical size of the file—that is, the offset of the highest written record plus the record size. For example, a student with ID=1 is stored at offset 64 (1 * 64) and occupies 64 bytes, so the file extends to 128 bytes. Similarly, a student with ID=3 is stored at offset 192 (3 * 64), yielding a file size of 256 bytes, and for ID=64, the record is at offset 4096, making the total logical size 4096 + 64 = 4160 bytes.
+
 
     -   Why did the total storage used on the disk remain unchanged when we added the student with ID=1, ID=3, and ID=63, but increased from 4K to 8K when we added the student with ID=64? 
 
-        > **ANSWER:** _start here_
+        > **ANSWER:**
+        >  This is due to how Linux handles sparse files. The filesystem allocates disk storage in fixed-size blocks (commonly 4K). When records with lower IDs are added, they are stored within the same allocated block(s), so the physical disk usage remains unchanged. However, when adding a record for ID=64, it falls into a new block, forcing the filesystem to allocate an additional 4K block, thereby increasing the physical storage used from 4K to 8K.
+
 
     - Now lets add one more student with a large student ID number  and see what happens:
 
@@ -121,5 +125,6 @@ Please answer the following questions and submit in your repo for the second ass
         ```
         We see from above adding a student with a very large student ID (ID=99999) increased the file size to 6400000 as shown by `ls` but the raw storage only increased to 12K as reported by `du`.  Can provide some insight into why this happened?
 
-        > **ANSWER:**  _start here_
+        > **ANSWER:** Adding a student with a very large ID dramatically increases the logical file size because the record is written at a very high offset (99999 * 64 + 64). However, since the file is sparse, only the blocks that contain actual data are allocated on disk. The holes in the file—regions between the allocated blocks—do not consume physical disk space. Thus, even though the logical size is huge, the actual storage used remains minimal.
+
 
