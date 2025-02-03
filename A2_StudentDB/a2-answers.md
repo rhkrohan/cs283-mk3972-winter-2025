@@ -40,7 +40,8 @@ Please answer the following questions and submit in your repo for the second ass
     ```
     Can you think of any reason why the above implementation would be a **very bad idea** using the C programming language?  Specifically, address why the above code introduces a subtle bug that could be hard to identify at runtime? 
 
-    > **ANSWER:** _start here_
+    > **ANSWER:**     > Returning a pointer to a local variable is a very bad idea because that variable is allocated on the stack and ceases to exist once the function returns. This means the caller would receive a pointer to memory that has been deallocated, leading to undefined behavior and potential runtime crashes. Such bugs can be extremely hard to trace because they may not appear immediately and can cause intermittent issues.
+
 
 3. Another way the `get_student(...)` function could be implemented is as follows:
 
