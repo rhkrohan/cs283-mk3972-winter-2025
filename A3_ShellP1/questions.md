@@ -8,7 +8,11 @@
 
 2. You needed to use `malloc()` to allocte memory for `cmd_buff` in `dsh_cli.c`. Can you explain why you needed to do that, instead of allocating a fixed-size array?
 
-    > **Answer**:  _start here_
+    > **Answer**: Using `malloc()` offers several advantages:
+    > - **Dynamic Memory Allocation:** It allows you to allocate memory based on runtime needs, so you aren’t limited to a fixed-size array that might be too small for longer commands.
+    > - **Efficient Use of Memory:** Allocating on the heap (with `malloc()`) avoids the potential limitations and overflow issues associated with large fixed-size arrays on the stack.
+    > - **Resizing Capabilities:** Dynamic allocation makes it easier to adjust the buffer size (using `realloc()`) if the input exceeds the initially allocated space, providing better scalability for varying input sizes.
+
 
 
 3. In `dshlib.c`, the function `build_cmd_list(`)` must trim leading and trailing spaces from each command before storing it. Why is this necessary? If we didn't trim spaces, what kind of issues might arise when executing commands in our shell?
