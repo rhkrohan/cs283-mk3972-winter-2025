@@ -91,7 +91,7 @@ void print_dragon(void)
 {
 #ifdef USE_COMPRESSED_DRAGON
     /* The compressed binary representation is defined below. */
-    unsigned long decompressed_size = 5000;  /* Adjust if necessary */
+    unsigned long decompressed_size = 5000;  
     char *decompressed = malloc(decompressed_size);
     if (!decompressed) {
         fprintf(stderr, "Memory allocation error\n");
@@ -153,10 +153,8 @@ void print_dragon(void)
 
 #include <zlib.h>
 static const unsigned char compressed_dragon[] = {
-    /* Placeholder data – in a real implementation, replace this with the actual 
-       gzipped binary data for the Drexel dragon. */
+
     0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03,
-    /* ... additional compressed bytes ... */
 };
 static const unsigned int compressed_dragon_len = sizeof(compressed_dragon);
 #endif
