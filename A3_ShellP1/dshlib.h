@@ -35,5 +35,5 @@ typedef struct {
 int build_cmd_list(char *cmd_line, command_list_t *clist);
 void free_cmd_list(command_list_t *clist);
 
-#endif /* DSHLIB_H */
+#endif 
 
