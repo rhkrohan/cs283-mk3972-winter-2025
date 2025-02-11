@@ -27,7 +27,35 @@
 
 - One topic you should have found information on is "redirection". Please provide at least 3 redirection examples that we should implement in our custom shell, and explain what challenges we might have implementing them.
 
-    > **Answer**:  _start here_
+    > **Answer**:
+    > 1. **Output Redirection (`>`):**
+    > - *Example:*
+    > ```bash
+    > ls > output.txt
+    >  ```
+    > - *Challenges:*
+    > - Correctly parsing the `>` operator and identifying the target file.
+    > - Opening (or creating) the target file for writing.
+    > - Redirecting STDOUT to the file and handling errors (e.g., permission issues).
+    > 2. **Input Redirection (`<`):**
+    > - *Example:*
+    > ```bash
+    > sort < unsorted.txt
+    > ```
+    > - *Challenges:*
+    > - Parsing the `<` operator to correctly determine the file name.
+    > - Opening the file for reading.
+    > - Redirecting STDIN from the file while handling errors such as file-not-found or lack of read permissions.
+    > 3. **Append Redirection (`>>`):**
+    > - *Example:*
+    > ```bash
+    > echo "Hello, World!" >> log.txt
+    > ```
+    > - *Challenges:*
+    > - Differentiating between `>` and `>>` during parsing.
+    > - Opening the file in append mode so that new output is added to the end without overwriting existing content.
+    > - Managing file descriptor duplication and ensuring robust error handling, especially if the file is accessed concurrently.
+
 
 - You should have also learned about "pipes". Redirection and piping both involve controlling input and output in the shell, but they serve different purposes. Explain the key differences between redirection and piping.
 
