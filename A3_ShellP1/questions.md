@@ -85,13 +85,13 @@
 - How should our custom shell handle errors from commands that fail? Consider cases where a command outputs both STDOUT and STDERR. Should we provide a way to merge them, and if so, how?
 
     > **Answer**: - **Proper Exit Codes:**  
-  > The shell should capture and propagate the exit codes of commands so that scripts and users can detect failures.
+      > The shell should capture and propagate the exit codes of commands so that scripts and users can detect failures.
   
-> - **Error Messaging:**  
- > Error messages (sent to STDERR) should be displayed immediately to inform the user about what went wrong.
+    > - **Error Messaging:**  
+     > Error messages (sent to STDERR) should be displayed immediately to inform the user about what went wrong.
   
-> - **Optional Merging of Streams:**  
-  > While keeping STDOUT and STDERR separate is generally best practice, many shells allow merging (e.g., using `2>&1`) so that both outputs can be redirected together if desired. Implementing a similar option would allow users to combine the two streams into a single output when needed.
+    > - **Optional Merging of Streams:**  
+      > While keeping STDOUT and STDERR separate is generally best practice, many shells allow merging (e.g., using `2>&1`) so that both outputs can be redirected together if desired. Implementing a similar option would allow users to combine the two streams into a single output when needed.
   
-> - **Resource Management and Consistency:**  
-  > The shell should ensure that all file descriptors are properly managed and closed even when errors occur, maintaining consistent behavior for subsequent commands.
+    > - **Resource Management and Consistency:**  
+      > The shell should ensure that all file descriptors are properly managed and closed even when errors occur, maintaining consistent behavior for subsequent commands.
