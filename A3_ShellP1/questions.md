@@ -17,7 +17,11 @@
 
 3. In `dshlib.c`, the function `build_cmd_list(`)` must trim leading and trailing spaces from each command before storing it. Why is this necessary? If we didn't trim spaces, what kind of issues might arise when executing commands in our shell?
 
-    > **Answer**:  _start here_
+    > **Answer**: Trimming leading and trailing spaces is necessary because:
+    > - **Accurate Command Parsing:** Extra spaces can lead to incorrect command interpretation. For example, a command with a leading space might not match a built-in command like `exit` because it is stored as `" exit"`.
+    > - **Avoidance of Empty Tokens:** Without trimming, tokenization might produce empty tokens or unintended arguments, which could cause errors or unexpected behavior during execution.
+    > - **Consistency:** Removing extraneous whitespace ensures that commands and their arguments are stored in a normalized format, making further processing (such as command matching and execution) more reliable.
+
 
 4. For this question you need to do some research on STDIN, STDOUT, and STDERR in Linux. We've learned this week that shells are "robust brokers of input and output". Google _"linux shell stdin stdout stderr explained"_ to get started.
 
