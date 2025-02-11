@@ -2,8 +2,8 @@
 
     > **Answer**: `fgets()` is a good choice for this application because:
     > - **Line-Oriented Input:** It reads an entire line of text (up to a specified limit), which fits well with how a shell processes commands on a per-line basis.
-    > - - **Buffer Overflow Protection:** Unlike older functions (e.g., `gets()`), `fgets()` requires you to specify the maximum number of characters to read, reducing the risk of buffer overflows.
-    >   - - **Ease of Post-Processing:** Since `fgets()` stops reading after encountering a newline, it is straightforward to remove the trailing newline character before further processing the command.
+    > - **Buffer Overflow Protection:** Unlike older functions (e.g., `gets()`), `fgets()` requires you to specify the maximum number of characters to read, reducing the risk of buffer overflows.
+    > - **Ease of Post-Processing:** Since `fgets()` stops reading after encountering a newline, it is straightforward to remove the trailing newline character before further processing the command.
 
 
 2. You needed to use `malloc()` to allocte memory for `cmd_buff` in `dsh_cli.c`. Can you explain why you needed to do that, instead of allocating a fixed-size array?
