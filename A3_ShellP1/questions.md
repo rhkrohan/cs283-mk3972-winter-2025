@@ -59,7 +59,17 @@
 
 - You should have also learned about "pipes". Redirection and piping both involve controlling input and output in the shell, but they serve different purposes. Explain the key differences between redirection and piping.
 
-    > **Answer**:  _start here_
+    > **Answer**:
+    > - **Purpose:**
+    > - - **Redirection:** Changes the source or destination of data for a command (e.g., reading from or writing to a file).
+    > - - **Piping:** Directly connects the output of one command to the input of another, facilitating data transfer between processes.
+    > - **Data Flow:**
+    > - - **Redirection:** Involves moving data between a command and an external file or device.
+    > - - **Piping:** Transfers data directly between processes in memory without an intermediary file.
+    > - **Implementation Complexity:**
+    > - - **Redirection:** Requires managing file I/O operations, including opening, closing, and error handling for files.
+    > - - **Piping:** Involves setting up inter-process communication channels (using mechanisms like `pipe()`) and managing multiple processes concurrently.
+
 
 - STDERR is often used for error messages, while STDOUT is for regular output. Why is it important to keep these separate in a shell?
 
