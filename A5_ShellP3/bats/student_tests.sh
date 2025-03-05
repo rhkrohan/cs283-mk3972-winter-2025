@@ -1,130 +1,146 @@
 #!/usr/bin/env bats
-# File: student_tests.sh
-# Create your unit tests suite in this file
 
-@test "Example: check ls runs without errors" {
-    run ./dsh <<EOF                
+# File: student_tests.sh
+#
+# These tests supplement the assignment_tests.sh file.
+# They are run by `make test` alongside assignment_tests.sh.
+
+###############################################################
+# SINGLE COMMANDS
+###############################################################
+
+@test "Single command: echo hello" {
+    run ./dsh <<EOF
+echo hello
+exit
+EOF
+    [[ "$output" =~ "hello" ]]
+    [ "$status" -eq 0 ]
+}
+
+@test "Single command: ls (should succeed)" {
+    run ./dsh <<EOF
 ls
 exit
 EOF
     [ "$status" -eq 0 ]
 }
 
-@test "Pipeline: echo hello | cat" {
+@test "Invalid command: nonexistent" {
     run ./dsh <<EOF
-echo hello | cat
+nonexistent_command_abc
 exit
 EOF
-    # Expect "hello" to appear in the output
-    [[ "$output" == *"hello"* ]]
+    [[ "$output" =~ "error: could not run external command" ]]
     [ "$status" -eq 0 ]
 }
 
-@test "Pipeline: echo hello world | tr a-z A-Z" {
-    run ./dsh <<EOF
-echo hello world | tr a-z A-Z
-exit
-EOF
-    # Expect output to include "HELLO WORLD"
-    [[ "$output" == *"HELLO WORLD"* ]]
-    [ "$status" -eq 0 ]
-}
+###############################################################
+# BUILT-IN COMMANDS
+###############################################################
 
-@test "Pipeline: ls | grep \".c\"" {
-    run ./dsh <<EOF
-ls | grep ".c"
-exit
-EOF
-    # Expect at least one .c file in the output (e.g. dshlib.c)
-    [[ "$output" == *".c"* ]]
-    [ "$status" -eq 0 ]
-}
-
-@test "Pipeline: multiple pipes: echo hello | tr a-z A-Z | rev" {
-    run ./dsh <<EOF
-echo hello | tr a-z A-Z | rev
-exit
-EOF
-    # "hello" becomes "HELLO" then reversed "OLLEH"
-    [[ "$output" == *"OLLEH"* ]]
-    [ "$status" -eq 0 ]
-}
-
-@test "Built-in cd: change directory to /tmp and check pwd" {
-    run ./dsh <<EOF
-cd /tmp
-pwd
-exit
-EOF
-    # Expect output to contain "/tmp"
-    [[ "$output" == *"/tmp"* ]]
-    [ "$status" -eq 0 ]
-}
-
-@test "Built-in cd with no arguments does nothing" {
-    current=$(pwd)
+@test "Built-in cd: no argument does nothing" {
+    current_dir="$(pwd)"
     run ./dsh <<EOF
 cd
 pwd
 exit
 EOF
-    # Expect the current directory to remain unchanged
-    [[ "$output" == *"$current"* ]]
+    [[ "$output" =~ "$current_dir" ]]
     [ "$status" -eq 0 ]
 }
 
-@test "Empty input produces warning" {
+@test "Built-in cd: changes directory to /tmp" {
     run ./dsh <<EOF
-       
+cd /tmp
+pwd
 exit
 EOF
-    # Expect output to include the no-command warning
-    [[ "$output" == *"warning: no commands provided"* ]]
+    [[ "$output" =~ "/tmp" ]]
     [ "$status" -eq 0 ]
 }
 
-@test "Invalid command returns error message" {
+@test "Built-in exit: returns immediately" {
     run ./dsh <<EOF
-nonexistentcommand
 exit
+echo "SHOULD NOT SEE THIS"
 EOF
-    # Expect an error message indicating failure to execute external command
-    [[ "$output" == *"error: could not run external command"* ]]
+    # We should NOT see "SHOULD NOT SEE THIS" in the output
+    [[ ! "$output" =~ "SHOULD NOT SEE THIS" ]]
     [ "$status" -eq 0 ]
 }
 
-@test "Command with quoted spaces preserves them" {
+###############################################################
+# QUOTED ARGUMENTS
+###############################################################
+
+@test "Quoted arguments: echo with double-quoted spaces" {
     run ./dsh <<EOF
-echo "hello,    world"
+echo " hello   world "
 exit
 EOF
-    # Expect output to include the phrase with multiple spaces exactly as typed
-    [[ "$output" == *"hello,    world"* ]]
+    # Expect to see the entire string with spaces preserved
+    [[ "$output" =~ " hello   world " ]]
     [ "$status" -eq 0 ]
 }
 
-# Extra Credit: Redirection tests (if implemented)
-
-@test "Redirection: echo with output redirection" {
+@test "Quoted arguments: multiple quotes" {
     run ./dsh <<EOF
-echo "hello, redirection" > out.txt
-cat out.txt
+echo "one" "two" three
 exit
 EOF
-    # Expect "hello, redirection" to appear in the file output
-    [[ "$output" == *"hello, redirection"* ]]
+    # Expect to see "one" "two" three as separate tokens
+    [[ "$output" =~ "one two three" ]]
     [ "$status" -eq 0 ]
 }
 
-@test "Extra Credit++: Append redirection" {
+###############################################################
+# PIPELINES
+###############################################################
+
+@test "Simple pipeline: echo hello | cat" {
     run ./dsh <<EOF
-echo "first line" > out.txt
-echo "second line" >> out.txt
-cat out.txt
+echo hello | cat
 exit
 EOF
-    # Expect both lines to appear in the correct order
-    [[ "$output" == *"first line"* ]]
-    [[ "$output" == *"second line"* ]]
+    [[ "$output" =~ "hello" ]]
+    [ "$status" -eq 0 ]
+}
+
+@test "Multiple pipeline stages: echo hello | tr a-z A-Z | rev" {
+    run ./dsh <<EOF
+echo hello | tr a-z A-Z | rev
+exit
+EOF
+    # "hello" => "HELLO" => reversed => "OLLEH"
+    [[ "$output" =~ "OLLEH" ]]
+    [ "$status" -eq 0 ]
+}
+
+###############################################################
+# EXTRA CREDIT: REDIRECTION (if implemented)
+###############################################################
+
+@test "Redirect output: echo -> file" {
+    # Only meaningful if your shell implements redirection
+    run ./dsh <<EOF
+echo "test redirection" > test_output.txt
+cat test_output.txt
+exit
+EOF
+    [[ "$output" =~ "test redirection" ]]
+    [ "$status" -eq 0 ]
+}
+
+@test "Append redirect: echo >> file" {
+    # Only meaningful if your shell implements append
+    run ./dsh <<EOF
+echo "line1" > test_append.txt
+echo "line2" >> test_append.txt
+cat test_append.txt
+exit
+EOF
+    [[ "$output" =~ "line1" ]]
+    [[ "$output" =~ "line2" ]]
     [ "$status" -eq 0 ]
 }
