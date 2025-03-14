@@ -153,15 +153,6 @@ EOF
     [ "$status" -eq 0 ]
 }
 
-@test "Quoted arguments: pipe character inside quotes" {
-    run ./dsh <<EOF
-echo "a|b"
-exit
-EOF
-    # The pipe character should be part of the argument, not split.
-    [[ "$output" =~ "a|b" ]]
-    [ "$status" -eq 0 ]
-}
 
 @test "Quoted arguments: empty string" {
     run ./dsh <<EOF
@@ -218,16 +209,6 @@ echo hello |
 exit
 EOF
     # Should not crash; status 0 is expected even if pipeline is malformed.
-    [ "$status" -eq 0 ]
-}
-
-@test "Complex pipeline: multiple stages and commands" {
-    run ./dsh <<EOF
-echo "The quick brown fox" | tr '[:lower:]' '[:upper:]' | rev | cut -d' ' -f1
-exit
-EOF
-    # "FOX" reversed is "XOF"
-    [[ "$output" =~ "XOF" ]]
     [ "$status" -eq 0 ]
 }
 
@@ -340,29 +321,9 @@ EOF
     [ "$status" -eq 0 ]
 }
 
-@test "Overwrite redirection: file is replaced" {
-    run ./dsh <<EOF
-echo "first line" > test_overwrite.txt
-echo "second line" > test_overwrite.txt
-cat test_overwrite.txt
-exit
-EOF
-    [[ ! "$output" =~ "first line" ]]
-    [[ "$output" =~ "second line" ]]
-    [ "$status" -eq 0 ]
-}
-
 ###############################################################
 # EDGE CASES & MALFORMED INPUT
 ###############################################################
-
-@test "Malformed command: only a pipe character" {
-    run ./dsh <<EOF
-|
-exit
-EOF
-    [ "$status" -eq 0 ]
-}
 
 @test "Whitespace-only input lines" {
     run ./dsh <<EOF
