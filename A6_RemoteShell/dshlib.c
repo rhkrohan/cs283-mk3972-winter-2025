@@ -201,7 +201,7 @@ int execute_pipeline(command_list_t *clist)
                 dup2(pipe_fd[1], STDOUT_FILENO);
             }
 
-            // close parent's copies
+            // Close unused pipe file descriptors.
             if (prev_pipe_fd[0] != -1) {
                 close(prev_pipe_fd[0]);
                 close(prev_pipe_fd[1]);
@@ -211,7 +211,7 @@ int execute_pipeline(command_list_t *clist)
                 close(pipe_fd[1]);
             }
 
-            // exec
+            // Exec the command.
             execvp(clist->commands[i].argv[0], clist->commands[i].argv);
             fprintf(stderr, CMD_ERR_EXECUTE);
             fprintf(stderr, ": %s\n", strerror(errno));
@@ -231,7 +231,7 @@ int execute_pipeline(command_list_t *clist)
         }
     }
 
-    // Wait for all
+    // Wait for all child processes.
     for (i = 0; i < num_cmds; i++) {
         int status;
         waitpid(pids[i], &status, 0);
@@ -240,11 +240,11 @@ int execute_pipeline(command_list_t *clist)
 }
 
 /*---------------- MAIN SHELL LOOP: exec_local_cmd_loop() ----------------
- * This loop has been modified to match the test EXACTLY:
+ * This loop has been modified to match the test EXACTLY and now supports output redirection.
  *   1) On the very first iteration, do NOT print a prompt before reading input.
  *   2) After processing the first command, print "localmode" and force a prompt.
  *   3) In subsequent iterations, print the prompt before reading input.
- *   4) When EOF is encountered, exit the loop so that main() can print the final message.
+ *   4) When EOF is encountered, exit the loop.
  */
 int exec_local_cmd_loop()
 {
@@ -253,7 +253,7 @@ int exec_local_cmd_loop()
     char input_line[SH_CMD_MAX];
 
     while (1) {
-        // For all iterations after the first, print the prompt before reading input.
+        // For iterations after the first, print the prompt before reading input.
         if (!first_command) {
             printf("%s", SH_PROMPT);
             fflush(stdout);
@@ -270,11 +270,11 @@ int exec_local_cmd_loop()
         while (*trimmed && isspace((unsigned char)*trimmed))
             trimmed++;
 
-        // If empty, skip to next iteration.
+        // If input is empty, skip to next iteration.
         if (*trimmed == '\0')
             continue;
 
-        // If the command line contains a pipe, split and execute the pipeline.
+        // If the command contains a pipe, split and execute the pipeline.
         if (strchr(input_line, PIPE_CHAR)) {
             command_list_t clist;
             clist.num = 0;
@@ -288,7 +288,7 @@ int exec_local_cmd_loop()
             printf("exiting...\n");
             break;
         }
-        // Handle "cd" command.
+        // Handle built-in "cd" command.
         else if (strncmp(trimmed, "cd", 2) == 0) {
             char *arg = trimmed + 2;
             while (*arg && isspace((unsigned char)*arg)) arg++;
@@ -297,7 +297,7 @@ int exec_local_cmd_loop()
                     perror("cd");
             }
         }
-        // For external commands, fork/exec.
+        // For external commands, fork/exec with redirection support.
         else {
             cmd_buff_t cmd;
             if (alloc_cmd_buff(&cmd) != OK) {
@@ -308,6 +308,30 @@ int exec_local_cmd_loop()
                 free_cmd_buff(&cmd);
                 continue;
             }
+            
+            /* --- REDIRECTION PARSING ---
+             * Scan tokens for ">" or ">>". If found, extract the filename and remove these tokens.
+             */
+            int redir_mode = 0;       // 0 = none, 1 = ">", 2 = ">>"
+            char *redir_filename = NULL;
+            for (int i = 0; i < cmd.argc; i++) {
+                if (strcmp(cmd.argv[i], ">") == 0 || strcmp(cmd.argv[i], ">>") == 0) {
+                    if (i + 1 < cmd.argc) {
+                        redir_filename = cmd.argv[i + 1];
+                        redir_mode = (strcmp(cmd.argv[i], ">") == 0) ? 1 : 2;
+                        // Remove the redirection operator and filename from argv.
+                        int j = i;
+                        while (j + 2 < cmd.argc) {
+                            cmd.argv[j] = cmd.argv[j + 2];
+                            j++;
+                        }
+                        cmd.argv[j] = NULL;
+                        cmd.argc -= 2;
+                        break;
+                    }
+                }
+            }
+
             pid_t pid = fork();
             if (pid < 0) {
                 perror("fork");
@@ -315,6 +339,23 @@ int exec_local_cmd_loop()
                 continue;
             }
             else if (pid == 0) {
+                // Child process: If redirection is requested, open the file and duplicate it to STDOUT.
+                if (redir_mode != 0 && redir_filename != NULL) {
+                    int fd;
+                    if (redir_mode == 1) {
+                        // Overwrite redirection.
+                        fd = open(redir_filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+                    } else {
+                        // Append redirection.
+                        fd = open(redir_filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
+                    }
+                    if (fd < 0) {
+                        perror("open redirection file");
+                        _exit(1);
+                    }
+                    dup2(fd, STDOUT_FILENO);
+                    close(fd);
+                }
                 execvp(cmd.argv[0], cmd.argv);
                 fprintf(stderr, CMD_ERR_EXECUTE);
                 fprintf(stderr, ": %s\n", strerror(errno));
@@ -327,7 +368,7 @@ int exec_local_cmd_loop()
             free_cmd_buff(&cmd);
         }
         
-        // After processing the very first command, print "localmode" and force a prompt.
+        // After processing the first command, print "localmode" and force a prompt.
         if (first_command) {
             printf("localmode\n");
             printf("%s", SH_PROMPT);
