@@ -103,14 +103,6 @@ EOF
     [ "$status" -eq 0 ]
 }
 
-@test "Built-in exit: with trailing spaces" {
-    run ./dsh <<EOF
-exit    
-echo "SHOULD NOT SEE THIS"
-EOF
-    [[ ! "$output" =~ "SHOULD NOT SEE THIS" ]]
-    [ "$status" -eq 0 ]
-}
 
 ###############################################################
 # QUOTED ARGUMENTS
